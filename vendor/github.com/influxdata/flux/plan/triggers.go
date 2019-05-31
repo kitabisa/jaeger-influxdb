@@ -1,6 +1,10 @@
 package plan
 
-import "github.com/influxdata/flux"
+import (
+	"fmt"
+
+	"github.com/influxdata/flux"
+)
 
 type TriggerSpec interface {
 	Kind() TriggerKind
@@ -26,9 +30,7 @@ type TriggerAwareProcedureSpec interface {
 func SetTriggerSpec(node Node) error {
 	ppn, ok := node.(*PhysicalPlanNode)
 	if !ok {
-		// If not a physical plan node, return immediately.
-		// This plan will eventually fail validation.
-		return nil
+		return fmt.Errorf("cannot set trigger spec on plan node of type %T", node)
 	}
 	spec := ppn.Spec
 	if n, ok := spec.(TriggerAwareProcedureSpec); ok {

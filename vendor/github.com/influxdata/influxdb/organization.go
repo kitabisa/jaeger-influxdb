@@ -7,7 +7,6 @@ type Organization struct {
 	ID          ID     `json:"id,omitempty"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	CRUDLog
 }
 
 // errors of org
@@ -55,14 +54,7 @@ type OrganizationService interface {
 // OrganizationUpdate represents updates to a organization.
 // Only fields which are set are updated.
 type OrganizationUpdate struct {
-	Name        *string
-	Description *string `json:"description,omitempty"`
-}
-
-// ErrInvalidOrgFilter is the error indicate org filter is empty
-var ErrInvalidOrgFilter = &Error{
-	Code: EInvalid,
-	Msg:  "Please provide either orgID or org",
+	Name *string
 }
 
 // OrganizationFilter represents a set of filter that restrict the returned results.

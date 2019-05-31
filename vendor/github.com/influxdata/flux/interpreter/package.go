@@ -12,7 +12,7 @@ import (
 type Package struct {
 	name        string
 	object      values.Object
-	sideEffects []SideEffect
+	sideEffects []values.Value
 }
 
 func NewPackageWithValues(name string, obj values.Object) *Package {
@@ -32,7 +32,7 @@ func (p *Package) Copy() *Package {
 	p.object.Range(func(k string, v values.Value) {
 		object.Set(k, v)
 	})
-	sideEffects := make([]SideEffect, len(p.sideEffects))
+	sideEffects := make([]values.Value, len(p.sideEffects))
 	copy(sideEffects, p.sideEffects)
 	return &Package{
 		name:        p.name,
@@ -43,7 +43,7 @@ func (p *Package) Copy() *Package {
 func (p *Package) Name() string {
 	return p.name
 }
-func (p *Package) SideEffects() []SideEffect {
+func (p *Package) SideEffects() []values.Value {
 	return p.sideEffects
 }
 func (p *Package) Type() semantic.Type {

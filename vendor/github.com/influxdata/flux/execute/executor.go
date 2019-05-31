@@ -297,7 +297,7 @@ func (es *executionState) do(ctx context.Context) {
 			select {
 			case <-t.Finished():
 			case <-ctx.Done():
-				es.abort(ctx.Err())
+				es.abort(errors.New("context done"))
 			case err := <-es.dispatcher.Err():
 				if err != nil {
 					es.abort(err)

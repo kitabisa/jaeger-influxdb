@@ -4,6 +4,10 @@ github.com/BurntSushi/toml
 github.com/Masterminds/semver
 # github.com/Masterminds/sprig v2.16.0+incompatible
 github.com/Masterminds/sprig
+# github.com/NYTimes/gziphandler v1.0.1
+github.com/NYTimes/gziphandler
+# github.com/RoaringBitmap/roaring v0.4.16
+github.com/RoaringBitmap/roaring
 # github.com/alecthomas/kingpin v2.2.6+incompatible
 github.com/alecthomas/kingpin
 # github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc
@@ -60,14 +64,26 @@ github.com/aws/aws-sdk-go/private/protocol/query/queryutil
 github.com/aws/aws-sdk-go/internal/sdkuri
 # github.com/benbjohnson/tmpl v1.0.0
 github.com/benbjohnson/tmpl
+# github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973
+github.com/beorn7/perks/quantile
 # github.com/blakesmith/ar v0.0.0-20150311145944-8bd4349a67f2
 github.com/blakesmith/ar
+# github.com/bouk/httprouter v0.0.0-20160817010721-ee8b3818a7f5
+github.com/bouk/httprouter
 # github.com/c-bata/go-prompt v0.2.2
 github.com/c-bata/go-prompt
 # github.com/caarlos0/ctrlc v1.0.0
 github.com/caarlos0/ctrlc
 # github.com/campoy/unique v0.0.0-20180121183637-88950e537e7e
 github.com/campoy/unique
+# github.com/cespare/xxhash v1.1.0
+github.com/cespare/xxhash
+# github.com/coreos/bbolt v1.3.1-coreos.6
+github.com/coreos/bbolt
+# github.com/dgrijalva/jwt-go v3.2.0+incompatible
+github.com/dgrijalva/jwt-go
+# github.com/dgryski/go-bitstream v0.0.0-20180413035011-3522498ce2c8
+github.com/dgryski/go-bitstream
 # github.com/dustin/go-humanize v1.0.0
 github.com/dustin/go-humanize/english
 github.com/dustin/go-humanize
@@ -77,10 +93,16 @@ github.com/editorconfig-checker/editorconfig-checker/pkg/logger
 github.com/editorconfig-checker/editorconfig-checker/pkg/types
 github.com/editorconfig-checker/editorconfig-checker/pkg/utils
 github.com/editorconfig-checker/editorconfig-checker/pkg/validators
+# github.com/elazarl/go-bindata-assetfs v1.0.0
+github.com/elazarl/go-bindata-assetfs
 # github.com/fatih/color v1.7.0
 github.com/fatih/color
 # github.com/fsnotify/fsnotify v1.4.7
 github.com/fsnotify/fsnotify
+# github.com/ghodss/yaml v1.0.0
+github.com/ghodss/yaml
+# github.com/glycerine/go-unsnap-stream v0.0.0-20181221182339-f9677308dec2
+github.com/glycerine/go-unsnap-stream
 # github.com/gogo/googleapis v1.2.0
 github.com/gogo/googleapis/google/api
 # github.com/gogo/protobuf v1.2.1
@@ -114,12 +136,17 @@ github.com/gogo/protobuf/protoc-gen-gogo/generator
 github.com/gogo/protobuf/protoc-gen-gogo/grpc
 github.com/gogo/protobuf/protoc-gen-gogo/plugin
 github.com/gogo/protobuf/protoc-gen-gogo/generator/internal/remap
+# github.com/golang/gddo v0.0.0-20181116215533-9bd4a3295021
+github.com/golang/gddo/httputil
+github.com/golang/gddo/httputil/header
 # github.com/golang/protobuf v1.3.1
 github.com/golang/protobuf/proto
 github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
+# github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db
+github.com/golang/snappy
 # github.com/google/go-cmp v0.2.0
 github.com/google/go-cmp/cmp
 github.com/google/go-cmp/cmp/cmpopts
@@ -180,7 +207,7 @@ github.com/goreleaser/nfpm
 github.com/goreleaser/nfpm/deb
 github.com/goreleaser/nfpm/rpm
 github.com/goreleaser/nfpm/glob
-# github.com/hashicorp/go-hclog v0.9.0
+# github.com/hashicorp/go-hclog v0.8.0
 github.com/hashicorp/go-hclog
 # github.com/hashicorp/go-plugin v1.0.0
 github.com/hashicorp/go-plugin
@@ -202,12 +229,11 @@ github.com/hashicorp/yamux
 github.com/huandu/xstrings
 # github.com/imdario/mergo v0.3.6
 github.com/imdario/mergo
-# github.com/influxdata/flux v0.31.1
+# github.com/influxdata/flux v0.28.3
 github.com/influxdata/flux
-github.com/influxdata/flux/ast
 github.com/influxdata/flux/csv
 github.com/influxdata/flux/lang
-github.com/influxdata/flux/repl
+github.com/influxdata/flux/ast
 github.com/influxdata/flux/interpreter
 github.com/influxdata/flux/iocounter
 github.com/influxdata/flux/memory
@@ -219,23 +245,78 @@ github.com/influxdata/flux/execute/executetest
 github.com/influxdata/flux/internal/spec
 github.com/influxdata/flux/plan
 github.com/influxdata/flux/ast/edit
+github.com/influxdata/flux/complete
+github.com/influxdata/flux/repl
 github.com/influxdata/flux/internal/parser
 github.com/influxdata/flux/internal/token
 github.com/influxdata/flux/arrow
 github.com/influxdata/flux/compiler
 github.com/influxdata/flux/internal/scanner
-# github.com/influxdata/influxdb v0.0.0-20190529204823-c560e27e1d5a
+# github.com/influxdata/influxdb v0.0.0-20190501202428-050c6e35c5b5
 github.com/influxdata/influxdb/models
 github.com/influxdata/influxdb
-github.com/influxdata/influxdb/kit/tracing
+github.com/influxdata/influxdb/http
 github.com/influxdata/influxdb/query
 github.com/influxdata/influxdb/pkg/escape
 github.com/influxdata/influxdb/task/options
 github.com/influxdata/influxdb/telegraf/plugins
 github.com/influxdata/influxdb/telegraf/plugins/inputs
 github.com/influxdata/influxdb/telegraf/plugins/outputs
+github.com/influxdata/influxdb/authorizer
+github.com/influxdata/influxdb/chronograf
+github.com/influxdata/influxdb/chronograf/dist
+github.com/influxdata/influxdb/chronograf/server
+github.com/influxdata/influxdb/context
+github.com/influxdata/influxdb/http/metric
 github.com/influxdata/influxdb/kit/check
+github.com/influxdata/influxdb/kit/prom
+github.com/influxdata/influxdb/kit/tracing
+github.com/influxdata/influxdb/kv
+github.com/influxdata/influxdb/logger
+github.com/influxdata/influxdb/query/influxql
+github.com/influxdata/influxdb/storage
+github.com/influxdata/influxdb/task/backend
+github.com/influxdata/influxdb/toml
+github.com/influxdata/influxdb/tsdb
 github.com/influxdata/influxdb/pkg/pointer
+github.com/influxdata/influxdb/bolt
+github.com/influxdata/influxdb/chronograf/bolt
+github.com/influxdata/influxdb/chronograf/canned
+github.com/influxdata/influxdb/chronograf/enterprise
+github.com/influxdata/influxdb/chronograf/filestore
+github.com/influxdata/influxdb/chronograf/id
+github.com/influxdata/influxdb/chronograf/influx
+github.com/influxdata/influxdb/chronograf/influx/queries
+github.com/influxdata/influxdb/chronograf/memdb
+github.com/influxdata/influxdb/chronograf/multistore
+github.com/influxdata/influxdb/chronograf/noop
+github.com/influxdata/influxdb/chronograf/oauth2
+github.com/influxdata/influxdb/chronograf/organizations
+github.com/influxdata/influxdb/chronograf/roles
+github.com/influxdata/influxdb/flux
+github.com/influxdata/influxdb/rand
+github.com/influxdata/influxdb/snowflake
+github.com/influxdata/influxdb/pkg/snowflake
+github.com/influxdata/influxdb/pkg/lifecycle
+github.com/influxdata/influxdb/storage/wal
+github.com/influxdata/influxdb/tsdb/cursors
+github.com/influxdata/influxdb/tsdb/tsi1
+github.com/influxdata/influxdb/tsdb/tsm1
+github.com/influxdata/influxdb/tsdb/value
+github.com/influxdata/influxdb/pkg/binaryutil
+github.com/influxdata/influxdb/pkg/bytesutil
+github.com/influxdata/influxdb/pkg/mmap
+github.com/influxdata/influxdb/pkg/rhh
+github.com/influxdata/influxdb/chronograf/bolt/internal
+github.com/influxdata/influxdb/pkg/limiter
+github.com/influxdata/influxdb/pkg/pool
+github.com/influxdata/influxdb/pkg/bloom
+github.com/influxdata/influxdb/pkg/slices
+github.com/influxdata/influxdb/pkg/encoding/simple8b
+github.com/influxdata/influxdb/pkg/estimator/hll
+github.com/influxdata/influxdb/pkg/file
+github.com/influxdata/influxdb/pkg/metrics
+github.com/influxdata/influxdb/pkg/estimator
 # github.com/influxdata/influxdb1-client v0.0.0-20190402204710-8ff2fc3824fc
 github.com/influxdata/influxdb1-client
 github.com/influxdata/influxdb1-client/models
@@ -243,7 +324,9 @@ github.com/influxdata/influxdb1-client/pkg/escape
 # github.com/influxdata/influxql v1.0.0
 github.com/influxdata/influxql
 github.com/influxdata/influxql/internal
-# github.com/jaegertracing/jaeger v1.11.1-0.20190505210250-7ae02d435b4e
+# github.com/influxdata/usage-client v0.0.0-20160829180054-6d3895376368
+github.com/influxdata/usage-client/v1
+# github.com/jaegertracing/jaeger v1.12.0
 github.com/jaegertracing/jaeger/plugin/storage/grpc
 github.com/jaegertracing/jaeger/plugin/storage/grpc/shared
 github.com/jaegertracing/jaeger/model
@@ -254,8 +337,16 @@ github.com/jaegertracing/jaeger/plugin/storage/grpc/config
 github.com/jaegertracing/jaeger/proto-gen/storage_v1
 github.com/jaegertracing/jaeger/model/converter/json
 github.com/jaegertracing/jaeger/model/json
+# github.com/jessevdk/go-flags v1.4.0
+github.com/jessevdk/go-flags
 # github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 github.com/jmespath/go-jmespath
+# github.com/jsternberg/zap-logfmt v1.2.0
+github.com/jsternberg/zap-logfmt
+# github.com/julienschmidt/httprouter v1.2.0
+github.com/julienschmidt/httprouter
+# github.com/jwilder/encoding v0.0.0-20170811194829-b4e1701a28ef
+github.com/jwilder/encoding/simple8b
 # github.com/kamilsk/retry v0.0.0-20181229152359-495c1d672c93
 github.com/kamilsk/retry
 github.com/kamilsk/retry/backoff
@@ -277,6 +368,8 @@ github.com/mattn/go-tty
 # github.com/mattn/go-zglob v0.0.1
 github.com/mattn/go-zglob
 github.com/mattn/go-zglob/fastwalk
+# github.com/matttproud/golang_protobuf_extensions v1.0.1
+github.com/matttproud/golang_protobuf_extensions/pbutil
 # github.com/mitchellh/go-homedir v1.0.0
 github.com/mitchellh/go-homedir
 # github.com/mitchellh/go-testing-interface v1.0.0
@@ -287,6 +380,8 @@ github.com/mitchellh/mapstructure
 github.com/mna/pigeon
 github.com/mna/pigeon/ast
 github.com/mna/pigeon/builder
+# github.com/mschoch/smat v0.0.0-20160514031455-90eadee771ae
+github.com/mschoch/smat
 # github.com/oklog/run v1.0.0
 github.com/oklog/run
 # github.com/opentracing/opentracing-go v1.1.0
@@ -295,10 +390,27 @@ github.com/opentracing/opentracing-go
 github.com/opentracing/opentracing-go/log
 # github.com/pelletier/go-toml v1.2.0
 github.com/pelletier/go-toml
+# github.com/philhofer/fwd v1.0.0
+github.com/philhofer/fwd
 # github.com/pkg/errors v0.8.1
 github.com/pkg/errors
 # github.com/pkg/term v0.0.0-20180730021639-bffc007b7fd5
 github.com/pkg/term/termios
+# github.com/prometheus/client_golang v0.9.0
+github.com/prometheus/client_golang/prometheus
+github.com/prometheus/client_golang/prometheus/promhttp
+github.com/prometheus/client_golang/prometheus/internal
+# github.com/prometheus/client_model v0.0.0-20180712105110-5c3871d89910
+github.com/prometheus/client_model/go
+# github.com/prometheus/common v0.0.0-20181020173914-7e9e6cabbd39
+github.com/prometheus/common/expfmt
+github.com/prometheus/common/model
+github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg
+# github.com/prometheus/procfs v0.0.0-20181005140218-185b4288413d
+github.com/prometheus/procfs
+github.com/prometheus/procfs/nfs
+github.com/prometheus/procfs/xfs
+github.com/prometheus/procfs/internal/util
 # github.com/satori/go.uuid v1.2.0
 github.com/satori/go.uuid
 # github.com/spf13/afero v1.1.2
@@ -312,13 +424,31 @@ github.com/spf13/jwalterweatherman
 github.com/spf13/pflag
 # github.com/spf13/viper v1.3.2
 github.com/spf13/viper
+# github.com/tinylib/msgp v1.1.0
+github.com/tinylib/msgp/msgp
+# github.com/tylerb/graceful v1.2.15
+github.com/tylerb/graceful
+# github.com/uber/jaeger-client-go v2.15.1-0.20190116124224-6733ee486c78+incompatible
+github.com/uber/jaeger-client-go
+github.com/uber/jaeger-client-go/internal/baggage
+github.com/uber/jaeger-client-go/internal/spanlog
+github.com/uber/jaeger-client-go/internal/throttler
+github.com/uber/jaeger-client-go/log
+github.com/uber/jaeger-client-go/thrift
+github.com/uber/jaeger-client-go/thrift-gen/jaeger
+github.com/uber/jaeger-client-go/thrift-gen/sampling
+github.com/uber/jaeger-client-go/thrift-gen/zipkincore
+github.com/uber/jaeger-client-go/utils
+github.com/uber/jaeger-client-go/thrift-gen/agent
 # github.com/uber/jaeger-lib v2.0.0+incompatible
 github.com/uber/jaeger-lib/metrics
-# go.uber.org/atomic v1.4.0
+# github.com/willf/bitset v1.1.9
+github.com/willf/bitset
+# go.uber.org/atomic v1.3.2
 go.uber.org/atomic
 # go.uber.org/multierr v1.1.0
 go.uber.org/multierr
-# go.uber.org/zap v1.10.0
+# go.uber.org/zap v1.9.1
 go.uber.org/zap
 go.uber.org/zap/zapcore
 go.uber.org/zap/internal/bufferpool
@@ -326,7 +456,9 @@ go.uber.org/zap/buffer
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 # golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
+golang.org/x/crypto/bcrypt
 golang.org/x/crypto/scrypt
+golang.org/x/crypto/blowfish
 golang.org/x/crypto/pbkdf2
 # golang.org/x/net v0.0.0-20190311183353-d8887717615a
 golang.org/x/net/context
@@ -339,6 +471,8 @@ golang.org/x/net/idna
 golang.org/x/net/context/ctxhttp
 # golang.org/x/oauth2 v0.0.0-20181017192945-9dcd33a902f4
 golang.org/x/oauth2
+golang.org/x/oauth2/github
+golang.org/x/oauth2/heroku
 golang.org/x/oauth2/internal
 # golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4
 golang.org/x/sync/errgroup
@@ -349,6 +483,8 @@ golang.org/x/text/transform
 golang.org/x/text/unicode/norm
 golang.org/x/text/secure/bidirule
 golang.org/x/text/unicode/bidi
+# golang.org/x/time v0.0.0-20181108054448-85acf8d2951c
+golang.org/x/time/rate
 # golang.org/x/tools v0.0.0-20190322203728-c1a832b0ad89
 golang.org/x/tools/cmd/stringer
 golang.org/x/tools/imports
@@ -369,6 +505,11 @@ golang.org/x/tools/go/internal/cgo
 # gonum.org/v1/gonum v0.0.0-20181121035319-3f7ecaa7e8ca
 gonum.org/v1/gonum/floats
 gonum.org/v1/gonum/internal/asm/f64
+# google.golang.org/api v0.0.0-20181021000519-a2651947f503
+google.golang.org/api/oauth2/v2
+google.golang.org/api/gensupport
+google.golang.org/api/googleapi
+google.golang.org/api/googleapi/internal/uritemplates
 # google.golang.org/appengine v1.2.0
 google.golang.org/appengine/urlfetch
 google.golang.org/appengine/internal

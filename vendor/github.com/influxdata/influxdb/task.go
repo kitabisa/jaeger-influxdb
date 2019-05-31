@@ -29,7 +29,6 @@ type Task struct {
 	Organization    string `json:"org"`
 	AuthorizationID ID     `json:"authorizationID"`
 	Name            string `json:"name"`
-	Description     string `json:"description,omitempty"`
 	Status          string `json:"status"`
 	Flux            string `json:"flux"`
 	Every           string `json:"every,omitempty"`
@@ -64,7 +63,7 @@ type Run struct {
 	StartedAt    string `json:"startedAt,omitempty"`
 	FinishedAt   string `json:"finishedAt,omitempty"`
 	RequestedAt  string `json:"requestedAt,omitempty"`
-	Log          []Log  `json:"log,omitempty"`
+	Log          []Log  `json:"log"`
 }
 
 // ScheduledForTime gives the time.Time that the run is scheduled for.
@@ -134,7 +133,6 @@ type TaskService interface {
 // TaskCreate is the set of values to create a task.
 type TaskCreate struct {
 	Flux           string `json:"flux"`
-	Description    string `json:"description,omitempty"`
 	Status         string `json:"status,omitempty"`
 	OrganizationID ID     `json:"orgID,omitempty"`
 	Organization   string `json:"org,omitempty"`
@@ -155,9 +153,8 @@ func (t TaskCreate) Validate() error {
 
 // TaskUpdate represents updates to a task. Options updates override any options set in the Flux field.
 type TaskUpdate struct {
-	Flux        *string `json:"flux,omitempty"`
-	Status      *string `json:"status,omitempty"`
-	Description *string `json:"description,omitempty"`
+	Flux   *string `json:"flux,omitempty"`
+	Status *string `json:"status,omitempty"`
 
 	// LatestCompleted us to set latest completed on startup to skip task catchup
 	LatestCompleted *string `json:"-"`
@@ -172,10 +169,9 @@ type TaskUpdate struct {
 func (t *TaskUpdate) UnmarshalJSON(data []byte) error {
 	// this is a type so we can marshal string into durations nicely
 	jo := struct {
-		Flux        *string `json:"flux,omitempty"`
-		Status      *string `json:"status,omitempty"`
-		Name        string  `json:"name,omitempty"`
-		Description *string `json:"description,omitempty"`
+		Flux   *string `json:"flux,omitempty"`
+		Status *string `json:"status,omitempty"`
+		Name   string  `json:"name,omitempty"`
 
 		// Cron is a cron style time schedule that can be used in place of Every.
 		Cron string `json:"cron,omitempty"`
@@ -199,7 +195,6 @@ func (t *TaskUpdate) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	t.Options.Name = jo.Name
-	t.Description = jo.Description
 	t.Options.Cron = jo.Cron
 	t.Options.Every = jo.Every
 	if jo.Offset != nil {
@@ -217,10 +212,9 @@ func (t *TaskUpdate) UnmarshalJSON(data []byte) error {
 
 func (t TaskUpdate) MarshalJSON() ([]byte, error) {
 	jo := struct {
-		Flux        *string `json:"flux,omitempty"`
-		Status      *string `json:"status,omitempty"`
-		Name        string  `json:"name,omitempty"`
-		Description *string `json:"description,omitempty"`
+		Flux   *string `json:"flux,omitempty"`
+		Status *string `json:"status,omitempty"`
+		Name   string  `json:"name,omitempty"`
 
 		// Cron is a cron style time schedule that can be used in place of Every.
 		Cron string `json:"cron,omitempty"`
@@ -240,7 +234,6 @@ func (t TaskUpdate) MarshalJSON() ([]byte, error) {
 	jo.Name = t.Options.Name
 	jo.Cron = t.Options.Cron
 	jo.Every = t.Options.Every
-	jo.Description = t.Description
 	if t.Options.Offset != nil {
 		offset := *t.Options.Offset
 		jo.Offset = &offset

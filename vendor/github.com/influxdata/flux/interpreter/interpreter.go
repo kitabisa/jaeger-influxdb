@@ -13,7 +13,7 @@ import (
 type Interpreter struct {
 	types       map[semantic.Node]semantic.Type
 	polyTypes   map[semantic.Node]semantic.PolyType
-	sideEffects []SideEffect // a list of the side effects occurred during the last call to `Eval`.
+	sideEffects []values.Value
 	pkg         string
 }
 
@@ -24,14 +24,8 @@ func NewInterpreter() *Interpreter {
 	}
 }
 
-// SideEffect contains its value, and the semantic node that generated it.
-type SideEffect struct {
-	Node  semantic.Node
-	Value values.Value
-}
-
-// Eval evaluates the expressions composing a Flux package and returns any side effects that occurred during this evaluation.
-func (itrp *Interpreter) Eval(node semantic.Node, scope Scope, importer Importer) ([]SideEffect, error) {
+// Eval evaluates the expressions composing a Flux package and returns any side effects that occured.
+func (itrp *Interpreter) Eval(node semantic.Node, scope Scope, importer Importer) ([]values.Value, error) {
 	var n = node
 	for s := scope; s != nil; s = s.Pop() {
 		extern := &semantic.Extern{
@@ -62,8 +56,6 @@ func (itrp *Interpreter) Eval(node semantic.Node, scope Scope, importer Importer
 		}
 	}), node)
 
-	// reset side effect list
-	itrp.sideEffects = itrp.sideEffects[:0]
 	if err := itrp.doRoot(node, scope, importer); err != nil {
 		return nil, err
 	}
@@ -111,11 +103,11 @@ func (itrp *Interpreter) doFile(file *semantic.File, scope Scope, importer Impor
 		if err != nil {
 			return err
 		}
-		if es, ok := stmt.(*semantic.ExpressionStatement); ok {
+		if _, ok := stmt.(*semantic.ExpressionStatement); ok {
 			// Only in the main package are all unassigned package
 			// level expressions coerced into producing side effects.
 			if itrp.pkg == semantic.PackageMain {
-				itrp.sideEffects = append(itrp.sideEffects, SideEffect{Node: es, Value: val})
+				itrp.sideEffects = append(itrp.sideEffects, val)
 			}
 		}
 	}
@@ -511,7 +503,7 @@ func (itrp *Interpreter) doCall(call *semantic.CallExpression, scope Scope) (val
 	}
 
 	if f.HasSideEffect() {
-		itrp.sideEffects = append(itrp.sideEffects, SideEffect{Node: call, Value: value})
+		itrp.sideEffects = append(itrp.sideEffects, value)
 	}
 
 	return value, nil
