@@ -6,9 +6,9 @@ import (
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/influxdata/influxdb"
+	influx2http "github.com/influxdata/influxdb/http"
 	"github.com/influxdata/jaeger-influxdb/common"
 	"github.com/influxdata/jaeger-influxdb/config"
-	"github.com/influxdata/jaeger-influxdb/influx2http"
 	"github.com/jaegertracing/jaeger/plugin/storage/grpc/shared"
 	"github.com/jaegertracing/jaeger/storage/dependencystore"
 	"github.com/jaegertracing/jaeger/storage/spanstore"

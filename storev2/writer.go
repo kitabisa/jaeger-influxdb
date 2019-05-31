@@ -9,10 +9,10 @@ import (
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/influxdata/influxdb"
+	influx2http "github.com/influxdata/influxdb/http"
 	"github.com/influxdata/influxdb/models"
 	"github.com/influxdata/jaeger-influxdb/common"
 	"github.com/influxdata/jaeger-influxdb/dbmodel"
-	"github.com/influxdata/jaeger-influxdb/influx2http"
 	"github.com/jaegertracing/jaeger/model"
 	"github.com/jaegertracing/jaeger/storage/spanstore"
 	"github.com/pkg/errors"
