@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"path"
 
@@ -431,11 +430,7 @@ func (h *DashboardHandler) handlePostDashboard(w http.ResponseWriter, r *http.Re
 		return
 	}
 	if err := h.DashboardService.CreateDashboard(ctx, req.Dashboard); err != nil {
-		EncodeError(ctx, &platform.Error{
-			Code: platform.EInternal,
-			Msg:  "Error loading dashboards",
-			Err:  err,
-		}, w)
+		EncodeError(ctx, err, w)
 		return
 	}
 
@@ -691,13 +686,13 @@ func (r *patchDashboardRequest) Valid() error {
 
 type postDashboardCellRequest struct {
 	dashboardID platform.ID
-	cell        *platform.Cell
-	opts        platform.AddDashboardCellOptions
+	*platform.CellProperty
+	UsingView *platform.ID `json:"usingView"`
+	Name      *string      `json:"name"`
 }
 
 func decodePostDashboardCellRequest(ctx context.Context, r *http.Request) (*postDashboardCellRequest, error) {
 	req := &postDashboardCellRequest{}
-
 	params := httprouter.ParamsFromContext(ctx)
 	id := params.ByName("id")
 	if id == "" {
@@ -706,20 +701,16 @@ func decodePostDashboardCellRequest(ctx context.Context, r *http.Request) (*post
 			Msg:  "url missing id",
 		}
 	}
+
+	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+		return nil, &platform.Error{
+			Code: platform.EInvalid,
+			Msg:  "bad request json body",
+			Err:  err,
+		}
+	}
+
 	if err := req.dashboardID.DecodeFromString(id); err != nil {
-		return nil, err
-	}
-
-	bs, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.cell = &platform.Cell{}
-	if err := json.NewDecoder(bytes.NewReader(bs)).Decode(req.cell); err != nil {
-		return nil, err
-	}
-	if err := json.NewDecoder(bytes.NewReader(bs)).Decode(&req.opts); err != nil {
 		return nil, err
 	}
 
@@ -735,12 +726,40 @@ func (h *DashboardHandler) handlePostDashboardCell(w http.ResponseWriter, r *htt
 		EncodeError(ctx, err, w)
 		return
 	}
-	if err := h.DashboardService.AddDashboardCell(ctx, req.dashboardID, req.cell, req.opts); err != nil {
+	cell := new(platform.Cell)
+
+	opts := new(platform.AddDashboardCellOptions)
+	if req.UsingView != nil || req.Name != nil {
+		opts.View = new(platform.View)
+		if req.UsingView != nil {
+			// load the view
+			opts.View, err = h.DashboardService.GetDashboardCellView(ctx, req.dashboardID, *req.UsingView)
+			if err != nil {
+				EncodeError(ctx, err, w)
+				return
+			}
+		}
+		if req.Name != nil {
+			opts.View.Name = *req.Name
+		}
+	} else if req.CellProperty == nil {
+		EncodeError(ctx, &platform.Error{
+			Code: platform.EInvalid,
+			Msg:  "req body is empty",
+		}, w)
+		return
+	}
+
+	if req.CellProperty != nil {
+		cell.CellProperty = *req.CellProperty
+	}
+
+	if err := h.DashboardService.AddDashboardCell(ctx, req.dashboardID, cell, *opts); err != nil {
 		EncodeError(ctx, err, w)
 		return
 	}
 
-	if err := encodeResponse(ctx, w, http.StatusCreated, newDashboardCellResponse(req.dashboardID, req.cell)); err != nil {
+	if err := encodeResponse(ctx, w, http.StatusCreated, newDashboardCellResponse(req.dashboardID, cell)); err != nil {
 		logEncodingError(h.Logger, r, err)
 		return
 	}
@@ -1028,7 +1047,7 @@ type DashboardService struct {
 // FindDashboardByID returns a single dashboard by ID.
 func (s *DashboardService) FindDashboardByID(ctx context.Context, id platform.ID) (*platform.Dashboard, error) {
 	path := dashboardIDPath(id)
-	url, err := newURL(s.Addr, path)
+	url, err := NewURL(s.Addr, path)
 	if err != nil {
 		return nil, err
 	}
@@ -1039,7 +1058,7 @@ func (s *DashboardService) FindDashboardByID(ctx context.Context, id platform.ID
 	}
 
 	SetToken(s.Token, req)
-	hc := newClient(url.Scheme, s.InsecureSkipVerify)
+	hc := NewClient(url.Scheme, s.InsecureSkipVerify)
 
 	resp, err := hc.Do(req)
 	if err != nil {
@@ -1064,7 +1083,7 @@ func (s *DashboardService) FindDashboardByID(ctx context.Context, id platform.ID
 // Additional options provide pagination & sorting.
 func (s *DashboardService) FindDashboards(ctx context.Context, filter platform.DashboardFilter, opts platform.FindOptions) ([]*platform.Dashboard, int, error) {
 	dashboards := []*platform.Dashboard{}
-	url, err := newURL(s.Addr, dashboardsPath)
+	url, err := NewURL(s.Addr, dashboardsPath)
 
 	if err != nil {
 		return dashboards, 0, err
@@ -1093,7 +1112,7 @@ func (s *DashboardService) FindDashboards(ctx context.Context, filter platform.D
 	}
 
 	SetToken(s.Token, req)
-	hc := newClient(url.Scheme, s.InsecureSkipVerify)
+	hc := NewClient(url.Scheme, s.InsecureSkipVerify)
 
 	resp, err := hc.Do(req)
 	if err != nil {
@@ -1116,7 +1135,7 @@ func (s *DashboardService) FindDashboards(ctx context.Context, filter platform.D
 
 // CreateDashboard creates a new dashboard and sets b.ID with the new identifier.
 func (s *DashboardService) CreateDashboard(ctx context.Context, d *platform.Dashboard) error {
-	url, err := newURL(s.Addr, dashboardsPath)
+	url, err := NewURL(s.Addr, dashboardsPath)
 	if err != nil {
 		return err
 	}
@@ -1134,7 +1153,7 @@ func (s *DashboardService) CreateDashboard(ctx context.Context, d *platform.Dash
 	req.Header.Set("Content-Type", "application/json")
 	SetToken(s.Token, req)
 
-	hc := newClient(url.Scheme, s.InsecureSkipVerify)
+	hc := NewClient(url.Scheme, s.InsecureSkipVerify)
 
 	resp, err := hc.Do(req)
 	if err != nil {
@@ -1157,7 +1176,7 @@ func (s *DashboardService) CreateDashboard(ctx context.Context, d *platform.Dash
 // Returns the new dashboard state after update.
 func (s *DashboardService) UpdateDashboard(ctx context.Context, id platform.ID, upd platform.DashboardUpdate) (*platform.Dashboard, error) {
 	//op := s.OpPrefix + platform.OpUpdateDashboard
-	u, err := newURL(s.Addr, dashboardIDPath(id))
+	u, err := NewURL(s.Addr, dashboardIDPath(id))
 	if err != nil {
 		return nil, err
 	}
@@ -1175,7 +1194,7 @@ func (s *DashboardService) UpdateDashboard(ctx context.Context, id platform.ID, 
 	req.Header.Set("Content-Type", "application/json")
 	SetToken(s.Token, req)
 
-	hc := newClient(u.Scheme, s.InsecureSkipVerify)
+	hc := NewClient(u.Scheme, s.InsecureSkipVerify)
 
 	resp, err := hc.Do(req)
 	if err != nil {
@@ -1200,7 +1219,7 @@ func (s *DashboardService) UpdateDashboard(ctx context.Context, id platform.ID, 
 
 // DeleteDashboard removes a dashboard by ID.
 func (s *DashboardService) DeleteDashboard(ctx context.Context, id platform.ID) error {
-	u, err := newURL(s.Addr, dashboardIDPath(id))
+	u, err := NewURL(s.Addr, dashboardIDPath(id))
 	if err != nil {
 		return err
 	}
@@ -1211,7 +1230,7 @@ func (s *DashboardService) DeleteDashboard(ctx context.Context, id platform.ID) 
 	}
 	SetToken(s.Token, req)
 
-	hc := newClient(u.Scheme, s.InsecureSkipVerify)
+	hc := NewClient(u.Scheme, s.InsecureSkipVerify)
 	resp, err := hc.Do(req)
 	if err != nil {
 		return err
@@ -1223,7 +1242,7 @@ func (s *DashboardService) DeleteDashboard(ctx context.Context, id platform.ID) 
 
 // AddDashboardCell adds a cell to a dashboard.
 func (s *DashboardService) AddDashboardCell(ctx context.Context, id platform.ID, c *platform.Cell, opts platform.AddDashboardCellOptions) error {
-	url, err := newURL(s.Addr, cellPath(id))
+	url, err := NewURL(s.Addr, cellPath(id))
 	if err != nil {
 		return err
 	}
@@ -1242,7 +1261,7 @@ func (s *DashboardService) AddDashboardCell(ctx context.Context, id platform.ID,
 	req.Header.Set("Content-Type", "application/json")
 	SetToken(s.Token, req)
 
-	hc := newClient(url.Scheme, s.InsecureSkipVerify)
+	hc := NewClient(url.Scheme, s.InsecureSkipVerify)
 	resp, err := hc.Do(req)
 	if err != nil {
 		return err
@@ -1259,7 +1278,7 @@ func (s *DashboardService) AddDashboardCell(ctx context.Context, id platform.ID,
 
 // RemoveDashboardCell removes a dashboard.
 func (s *DashboardService) RemoveDashboardCell(ctx context.Context, dashboardID, cellID platform.ID) error {
-	u, err := newURL(s.Addr, dashboardCellIDPath(dashboardID, cellID))
+	u, err := NewURL(s.Addr, dashboardCellIDPath(dashboardID, cellID))
 	if err != nil {
 		return err
 	}
@@ -1270,7 +1289,7 @@ func (s *DashboardService) RemoveDashboardCell(ctx context.Context, dashboardID,
 	}
 	SetToken(s.Token, req)
 
-	hc := newClient(u.Scheme, s.InsecureSkipVerify)
+	hc := NewClient(u.Scheme, s.InsecureSkipVerify)
 	resp, err := hc.Do(req)
 	if err != nil {
 		return err
@@ -1290,7 +1309,7 @@ func (s *DashboardService) UpdateDashboardCell(ctx context.Context, dashboardID,
 		}
 	}
 
-	u, err := newURL(s.Addr, dashboardCellIDPath(dashboardID, cellID))
+	u, err := NewURL(s.Addr, dashboardCellIDPath(dashboardID, cellID))
 	if err != nil {
 		return nil, err
 	}
@@ -1308,7 +1327,7 @@ func (s *DashboardService) UpdateDashboardCell(ctx context.Context, dashboardID,
 	req.Header.Set("Content-Type", "application/json")
 	SetToken(s.Token, req)
 
-	hc := newClient(u.Scheme, s.InsecureSkipVerify)
+	hc := NewClient(u.Scheme, s.InsecureSkipVerify)
 
 	resp, err := hc.Do(req)
 	if err != nil {
@@ -1330,7 +1349,7 @@ func (s *DashboardService) UpdateDashboardCell(ctx context.Context, dashboardID,
 
 // GetDashboardCellView retrieves the view for a dashboard cell.
 func (s *DashboardService) GetDashboardCellView(ctx context.Context, dashboardID, cellID platform.ID) (*platform.View, error) {
-	u, err := newURL(s.Addr, cellViewPath(dashboardID, cellID))
+	u, err := NewURL(s.Addr, cellViewPath(dashboardID, cellID))
 	if err != nil {
 		return nil, err
 	}
@@ -1343,7 +1362,7 @@ func (s *DashboardService) GetDashboardCellView(ctx context.Context, dashboardID
 	req.Header.Set("Content-Type", "application/json")
 	SetToken(s.Token, req)
 
-	hc := newClient(u.Scheme, s.InsecureSkipVerify)
+	hc := NewClient(u.Scheme, s.InsecureSkipVerify)
 
 	resp, err := hc.Do(req)
 	if err != nil {
@@ -1365,7 +1384,7 @@ func (s *DashboardService) GetDashboardCellView(ctx context.Context, dashboardID
 
 // UpdateDashboardCellView updates the view for a dashboard cell.
 func (s *DashboardService) UpdateDashboardCellView(ctx context.Context, dashboardID, cellID platform.ID, upd platform.ViewUpdate) (*platform.View, error) {
-	u, err := newURL(s.Addr, cellViewPath(dashboardID, cellID))
+	u, err := NewURL(s.Addr, cellViewPath(dashboardID, cellID))
 	if err != nil {
 		return nil, err
 	}
@@ -1383,7 +1402,7 @@ func (s *DashboardService) UpdateDashboardCellView(ctx context.Context, dashboar
 	req.Header.Set("Content-Type", "application/json")
 	SetToken(s.Token, req)
 
-	hc := newClient(u.Scheme, s.InsecureSkipVerify)
+	hc := NewClient(u.Scheme, s.InsecureSkipVerify)
 
 	resp, err := hc.Do(req)
 	if err != nil {
@@ -1405,7 +1424,7 @@ func (s *DashboardService) UpdateDashboardCellView(ctx context.Context, dashboar
 
 // ReplaceDashboardCells replaces all cells in a dashboard
 func (s *DashboardService) ReplaceDashboardCells(ctx context.Context, id platform.ID, cs []*platform.Cell) error {
-	u, err := newURL(s.Addr, cellPath(id))
+	u, err := NewURL(s.Addr, cellPath(id))
 	if err != nil {
 		return err
 	}
@@ -1424,7 +1443,7 @@ func (s *DashboardService) ReplaceDashboardCells(ctx context.Context, id platfor
 	req.Header.Set("Content-Type", "application/json")
 	SetToken(s.Token, req)
 
-	hc := newClient(u.Scheme, s.InsecureSkipVerify)
+	hc := NewClient(u.Scheme, s.InsecureSkipVerify)
 
 	resp, err := hc.Do(req)
 	if err != nil {

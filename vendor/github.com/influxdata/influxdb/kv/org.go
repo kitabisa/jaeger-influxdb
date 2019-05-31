@@ -155,10 +155,7 @@ func (s *Service) FindOrganization(ctx context.Context, filter influxdb.Organiza
 	}
 
 	// If name and ID are not set, then, this is an invalid usage of the API.
-	return nil, &influxdb.Error{
-		Code: influxdb.EInvalid,
-		Msg:  "no filter parameters provided",
-	}
+	return nil, influxdb.ErrInvalidOrgFilter
 }
 
 func filterOrganizationsFn(filter influxdb.OrganizationFilter) func(o *influxdb.Organization) bool {
@@ -252,6 +249,8 @@ func (s *Service) createOrganization(ctx context.Context, tx Tx, o *influxdb.Org
 	}
 
 	o.ID = s.IDGenerator.ID()
+	o.CreatedAt = s.Now()
+	o.UpdatedAt = s.Now()
 	if err := s.appendOrganizationEventToLog(ctx, tx, o.ID, organizationCreatedEvent); err != nil {
 		return &influxdb.Error{
 			Err: err,
@@ -400,6 +399,12 @@ func (s *Service) updateOrganization(ctx context.Context, tx Tx, id influxdb.ID,
 			return nil, err
 		}
 	}
+
+	if upd.Description != nil {
+		o.Description = *upd.Description
+	}
+
+	o.UpdatedAt = s.Now()
 
 	if err := s.appendOrganizationEventToLog(ctx, tx, o.ID, organizationUpdatedEvent); err != nil {
 		return nil, &influxdb.Error{
@@ -573,7 +578,7 @@ func (s *Service) appendOrganizationEventToLog(ctx context.Context, tx Tx, id in
 		return err
 	}
 
-	return s.addLogEntry(ctx, tx, k, v, s.time())
+	return s.addLogEntry(ctx, tx, k, v, s.Now())
 }
 
 // FindResourceOrganizationID is used to find the organization that a resource belongs to five the id of a resource and a resource type.

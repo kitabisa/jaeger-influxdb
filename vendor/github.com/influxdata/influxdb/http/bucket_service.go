@@ -132,6 +132,7 @@ type bucket struct {
 	Name                string          `json:"name"`
 	RetentionPolicyName string          `json:"rp,omitempty"` // This to support v1 sources
 	RetentionRules      []retentionRule `json:"retentionRules"`
+	influxdb.CRUDLog
 }
 
 // retentionRule is the retention rule action for a bucket.
@@ -165,6 +166,7 @@ func (b *bucket) toInfluxDB() (*influxdb.Bucket, error) {
 		Name:                b.Name,
 		RetentionPolicyName: b.RetentionPolicyName,
 		RetentionPeriod:     d,
+		CRUDLog:             b.CRUDLog,
 	}, nil
 }
 
@@ -189,6 +191,7 @@ func newBucket(pb *influxdb.Bucket) *bucket {
 		Description:         pb.Description,
 		RetentionPolicyName: pb.RetentionPolicyName,
 		RetentionRules:      rules,
+		CRUDLog:             pb.CRUDLog,
 	}
 }
 
@@ -592,7 +595,7 @@ func (s *BucketService) FindBucketByID(ctx context.Context, id influxdb.ID) (*in
 	span, _ := tracing.StartSpanFromContext(ctx)
 	defer span.Finish()
 
-	u, err := newURL(s.Addr, bucketIDPath(id))
+	u, err := NewURL(s.Addr, bucketIDPath(id))
 	if err != nil {
 		return nil, err
 	}
@@ -604,7 +607,7 @@ func (s *BucketService) FindBucketByID(ctx context.Context, id influxdb.ID) (*in
 	SetToken(s.Token, req)
 	tracing.InjectToHTTPRequest(span, req)
 
-	hc := newClient(u.Scheme, s.InsecureSkipVerify)
+	hc := NewClient(u.Scheme, s.InsecureSkipVerify)
 	resp, err := hc.Do(req)
 	if err != nil {
 		return nil, err
@@ -655,7 +658,7 @@ func (s *BucketService) FindBuckets(ctx context.Context, filter influxdb.BucketF
 	span, _ := tracing.StartSpanFromContext(ctx)
 	defer span.Finish()
 
-	u, err := newURL(s.Addr, bucketPath)
+	u, err := NewURL(s.Addr, bucketPath)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -691,7 +694,7 @@ func (s *BucketService) FindBuckets(ctx context.Context, filter influxdb.BucketF
 	SetToken(s.Token, req)
 	tracing.InjectToHTTPRequest(span, req)
 
-	hc := newClient(u.Scheme, s.InsecureSkipVerify)
+	hc := NewClient(u.Scheme, s.InsecureSkipVerify)
 	resp, err := hc.Do(req)
 	if err != nil {
 		return nil, 0, err
@@ -725,7 +728,7 @@ func (s *BucketService) CreateBucket(ctx context.Context, b *influxdb.Bucket) er
 	span, _ := tracing.StartSpanFromContext(ctx)
 	defer span.Finish()
 
-	u, err := newURL(s.Addr, bucketPath)
+	u, err := NewURL(s.Addr, bucketPath)
 	if err != nil {
 		return err
 	}
@@ -744,7 +747,7 @@ func (s *BucketService) CreateBucket(ctx context.Context, b *influxdb.Bucket) er
 	SetToken(s.Token, req)
 	tracing.InjectToHTTPRequest(span, req)
 
-	hc := newClient(u.Scheme, s.InsecureSkipVerify)
+	hc := NewClient(u.Scheme, s.InsecureSkipVerify)
 
 	resp, err := hc.Do(req)
 	if err != nil {
@@ -773,7 +776,7 @@ func (s *BucketService) CreateBucket(ctx context.Context, b *influxdb.Bucket) er
 // UpdateBucket updates a single bucket with changeset.
 // Returns the new bucket state after update.
 func (s *BucketService) UpdateBucket(ctx context.Context, id influxdb.ID, upd influxdb.BucketUpdate) (*influxdb.Bucket, error) {
-	u, err := newURL(s.Addr, bucketIDPath(id))
+	u, err := NewURL(s.Addr, bucketIDPath(id))
 	if err != nil {
 		return nil, err
 	}
@@ -792,7 +795,7 @@ func (s *BucketService) UpdateBucket(ctx context.Context, id influxdb.ID, upd in
 	req.Header.Set("Content-Type", "application/json")
 	SetToken(s.Token, req)
 
-	hc := newClient(u.Scheme, s.InsecureSkipVerify)
+	hc := NewClient(u.Scheme, s.InsecureSkipVerify)
 
 	resp, err := hc.Do(req)
 	if err != nil {
@@ -813,7 +816,7 @@ func (s *BucketService) UpdateBucket(ctx context.Context, id influxdb.ID, upd in
 
 // DeleteBucket removes a bucket by ID.
 func (s *BucketService) DeleteBucket(ctx context.Context, id influxdb.ID) error {
-	u, err := newURL(s.Addr, bucketIDPath(id))
+	u, err := NewURL(s.Addr, bucketIDPath(id))
 	if err != nil {
 		return err
 	}
@@ -824,7 +827,7 @@ func (s *BucketService) DeleteBucket(ctx context.Context, id influxdb.ID) error 
 	}
 	SetToken(s.Token, req)
 
-	hc := newClient(u.Scheme, s.InsecureSkipVerify)
+	hc := NewClient(u.Scheme, s.InsecureSkipVerify)
 	resp, err := hc.Do(req)
 	if err != nil {
 		return err

@@ -7,8 +7,8 @@ require (
 	github.com/golang/protobuf v1.3.1 // indirect
 	github.com/hashicorp/go-hclog v0.8.0
 	github.com/hashicorp/go-plugin v1.0.0 // indirect
-	github.com/influxdata/flux v0.28.3
-	github.com/influxdata/influxdb v0.0.0-20190501202428-050c6e35c5b5
+	github.com/influxdata/flux v0.31.1
+	github.com/influxdata/influxdb v0.0.0-20190531154111-03c53f9bc637
 	github.com/influxdata/influxdb1-client v0.0.0-20190402204710-8ff2fc3824fc
 	github.com/influxdata/influxql v1.0.0 // indirect
 	github.com/jaegertracing/jaeger v1.12.0

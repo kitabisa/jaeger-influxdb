@@ -17,6 +17,7 @@ import (
 	"github.com/influxdata/flux/csv"
 	"github.com/influxdata/flux/iocounter"
 	"github.com/influxdata/flux/parser"
+	influxdb "github.com/influxdata/influxdb"
 	platform "github.com/influxdata/influxdb"
 	pcontext "github.com/influxdata/influxdb/context"
 	"github.com/influxdata/influxdb/http/metric"
@@ -54,6 +55,11 @@ func NewFluxBackend(b *APIBackend) *FluxBackend {
 	}
 }
 
+// HTTPDialect is an encoding dialect that can write metadata to HTTP headers
+type HTTPDialect interface {
+	SetHeaders(w http.ResponseWriter)
+}
+
 // FluxHandler implements handling flux queries.
 type FluxHandler struct {
 	*httprouter.Router
@@ -88,6 +94,7 @@ func NewFluxHandler(b *FluxBackend) *FluxHandler {
 }
 
 func (h *FluxHandler) handleQuery(w http.ResponseWriter, r *http.Request) {
+	const op = "http/handlePostQuery"
 	span, r := tracing.ExtractFromHTTPRequest(r, "FluxHandler")
 	defer span.Finish()
 
@@ -111,12 +118,24 @@ func (h *FluxHandler) handleQuery(w http.ResponseWriter, r *http.Request) {
 
 	a, err := pcontext.GetAuthorizer(ctx)
 	if err != nil {
+		err := &influxdb.Error{
+			Code: influxdb.EUnauthorized,
+			Msg:  "authorization is invalid or missing in the query request",
+			Op:   op,
+			Err:  err,
+		}
 		EncodeError(ctx, err, w)
 		return
 	}
 
 	req, n, err := decodeProxyQueryRequest(ctx, r, a, h.OrganizationService)
 	if err != nil && err != platform.ErrAuthorizerNotSupported {
+		err := &influxdb.Error{
+			Code: influxdb.EInvalid,
+			Msg:  "failed to decode request body",
+			Op:   op,
+			Err:  err,
+		}
 		EncodeError(ctx, err, w)
 		return
 	}
@@ -128,7 +147,12 @@ func (h *FluxHandler) handleQuery(w http.ResponseWriter, r *http.Request) {
 
 	hd, ok := req.Dialect.(HTTPDialect)
 	if !ok {
-		EncodeError(ctx, fmt.Errorf("unsupported dialect over HTTP %T", req.Dialect), w)
+		err := &influxdb.Error{
+			Code: influxdb.EInvalid,
+			Msg:  fmt.Sprintf("unsupported dialect over HTTP: %T", req.Dialect),
+			Op:   op,
+		}
+		EncodeError(ctx, err, w)
 		return
 	}
 	hd.SetHeaders(w)
@@ -137,6 +161,12 @@ func (h *FluxHandler) handleQuery(w http.ResponseWriter, r *http.Request) {
 	if _, err := h.ProxyQueryService.Query(ctx, &cw, req); err != nil {
 		if cw.Count() == 0 {
 			// Only record the error headers IFF nothing has been written to w.
+			err := &influxdb.Error{
+				Code: influxdb.EInternal,
+				Msg:  "failed to execute query against proxy service",
+				Op:   op,
+				Err:  err,
+			}
 			EncodeError(ctx, err, w)
 			return
 		}
@@ -316,7 +346,7 @@ type FluxService struct {
 func (s *FluxService) Query(ctx context.Context, w io.Writer, r *query.ProxyRequest) (flux.Statistics, error) {
 	span, ctx := tracing.StartSpanFromContext(ctx)
 	defer span.Finish()
-	u, err := newURL(s.Addr, fluxPath)
+	u, err := NewURL(s.Addr, fluxPath)
 	if err != nil {
 		return flux.Statistics{}, tracing.LogError(span, err)
 	}
@@ -342,7 +372,7 @@ func (s *FluxService) Query(ctx context.Context, w io.Writer, r *query.ProxyRequ
 	hreq = hreq.WithContext(ctx)
 	tracing.InjectToHTTPRequest(span, hreq)
 
-	hc := newClient(u.Scheme, s.InsecureSkipVerify)
+	hc := NewClient(u.Scheme, s.InsecureSkipVerify)
 	resp, err := hc.Do(hreq)
 	if err != nil {
 		return flux.Statistics{}, tracing.LogError(span, err)
@@ -377,7 +407,7 @@ func (s *FluxQueryService) Query(ctx context.Context, r *query.Request) (flux.Re
 	span, ctx := tracing.StartSpanFromContext(ctx)
 	defer span.Finish()
 
-	u, err := newURL(s.Addr, fluxPath)
+	u, err := NewURL(s.Addr, fluxPath)
 	if err != nil {
 		return nil, tracing.LogError(span, err)
 	}
@@ -410,7 +440,7 @@ func (s *FluxQueryService) Query(ctx context.Context, r *query.Request) (flux.Re
 	hreq = hreq.WithContext(ctx)
 	tracing.InjectToHTTPRequest(span, hreq)
 
-	hc := newClient(u.Scheme, s.InsecureSkipVerify)
+	hc := NewClient(u.Scheme, s.InsecureSkipVerify)
 	resp, err := hc.Do(hreq)
 	if err != nil {
 		return nil, tracing.LogError(span, err)
@@ -436,7 +466,7 @@ func (s FluxQueryService) Check(ctx context.Context) check.Response {
 
 // SimpleQuery runs a flux query with common parameters and returns CSV results.
 func SimpleQuery(addr, flux, org, token string) ([]byte, error) {
-	u, err := newURL(addr, fluxPath)
+	u, err := NewURL(addr, fluxPath)
 	if err != nil {
 		return nil, err
 	}
@@ -472,7 +502,7 @@ func SimpleQuery(addr, flux, org, token string) ([]byte, error) {
 	req.Header.Set("Accept", "text/csv")
 
 	insecureSkipVerify := false
-	hc := newClient(u.Scheme, insecureSkipVerify)
+	hc := NewClient(u.Scheme, insecureSkipVerify)
 	res, err := hc.Do(req)
 	if err != nil {
 		return nil, err
@@ -487,7 +517,7 @@ func SimpleQuery(addr, flux, org, token string) ([]byte, error) {
 }
 
 func QueryHealthCheck(url string, insecureSkipVerify bool) check.Response {
-	u, err := newURL(url, "/health")
+	u, err := NewURL(url, "/health")
 	if err != nil {
 		return check.Response{
 			Name:    "query health",
@@ -496,7 +526,7 @@ func QueryHealthCheck(url string, insecureSkipVerify bool) check.Response {
 		}
 	}
 
-	hc := newClient(u.Scheme, insecureSkipVerify)
+	hc := NewClient(u.Scheme, insecureSkipVerify)
 	resp, err := hc.Get(u.String())
 	if err != nil {
 		return check.Response{

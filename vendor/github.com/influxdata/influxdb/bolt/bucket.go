@@ -351,6 +351,8 @@ func (c *Client) CreateBucket(ctx context.Context, b *platform.Bucket) error {
 		}
 
 		b.ID = c.IDGenerator.ID()
+		b.CreatedAt = c.Now()
+		b.UpdatedAt = c.Now()
 
 		if err = c.appendBucketEventToLog(ctx, tx, b.ID, bucketCreatedEvent); err != nil {
 			return &platform.Error{
@@ -545,6 +547,8 @@ func (c *Client) updateBucket(ctx context.Context, tx *bolt.Tx, id platform.ID, 
 		b.Name = *upd.Name
 	}
 
+	b.UpdatedAt = c.Now()
+
 	if err := c.appendBucketEventToLog(ctx, tx, b.ID, bucketUpdatedEvent); err != nil {
 		return nil, err
 	}
@@ -676,5 +680,5 @@ func (c *Client) appendBucketEventToLog(ctx context.Context, tx *bolt.Tx, id pla
 		return err
 	}
 
-	return c.addLogEntry(ctx, tx, k, v, c.time())
+	return c.addLogEntry(ctx, tx, k, v, c.Now())
 }

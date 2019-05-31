@@ -149,10 +149,7 @@ func (c *Client) FindOrganization(ctx context.Context, filter influxdb.Organizat
 	}
 
 	// If name and ID are not set, then, this is an invalid usage of the API.
-	return nil, &influxdb.Error{
-		Code: influxdb.EInvalid,
-		Msg:  "no filter parameters provided",
-	}
+	return nil, influxdb.ErrInvalidOrgFilter
 }
 
 func filterOrganizationsFn(filter influxdb.OrganizationFilter) func(o *influxdb.Organization) bool {
@@ -233,6 +230,8 @@ func (c *Client) CreateOrganization(ctx context.Context, o *influxdb.Organizatio
 		}
 
 		o.ID = c.IDGenerator.ID()
+		o.CreatedAt = c.Now()
+		o.UpdatedAt = c.Now()
 		if err := c.appendOrganizationEventToLog(ctx, tx, o.ID, organizationCreatedEvent); err != nil {
 			return &influxdb.Error{
 				Err: err,
@@ -361,6 +360,12 @@ func (c *Client) updateOrganization(ctx context.Context, tx *bolt.Tx, id influxd
 			}
 		}
 	}
+
+	if upd.Description != nil {
+		o.Description = *upd.Description
+	}
+
+	o.UpdatedAt = c.Now()
 
 	if err := c.appendOrganizationEventToLog(ctx, tx, o.ID, organizationUpdatedEvent); err != nil {
 		return nil, &influxdb.Error{
@@ -504,7 +509,7 @@ func (c *Client) appendOrganizationEventToLog(ctx context.Context, tx *bolt.Tx, 
 		return err
 	}
 
-	return c.addLogEntry(ctx, tx, k, v, c.time())
+	return c.addLogEntry(ctx, tx, k, v, c.Now())
 }
 
 func (c *Client) FindResourceOrganizationID(ctx context.Context, rt influxdb.ResourceType, id influxdb.ID) (influxdb.ID, error) {
