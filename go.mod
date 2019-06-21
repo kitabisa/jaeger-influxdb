@@ -4,11 +4,9 @@ go 1.12
 
 require (
 	github.com/gogo/googleapis v1.2.0 // indirect
-	github.com/golang/protobuf v1.3.1 // indirect
 	github.com/hashicorp/go-hclog v0.8.0
-	github.com/hashicorp/go-plugin v1.0.0 // indirect
-	github.com/influxdata/flux v0.31.1
-	github.com/influxdata/influxdb v0.0.0-20190531154111-03c53f9bc637
+	github.com/influxdata/flux v0.32.1
+	github.com/influxdata/influxdb v0.0.0-20190614000053-d30fd1084880
 	github.com/influxdata/influxdb1-client v0.0.0-20190402204710-8ff2fc3824fc
 	github.com/influxdata/influxql v1.0.0 // indirect
 	github.com/jaegertracing/jaeger v1.12.0

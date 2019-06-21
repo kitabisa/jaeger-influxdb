@@ -792,7 +792,10 @@ func (s *Service) deleteTask(ctx context.Context, tx Tx, id influxdb.ID) error {
 	if err := taskBucket.Delete(key); err != nil {
 		return ErrUnexpectedTaskBucketErr(err)
 	}
-	return nil
+
+	return s.deleteUserResourceMapping(ctx, tx, influxdb.UserResourceMappingFilter{
+		ResourceID: task.ID,
+	})
 }
 
 // FindLogs returns logs for a run.
@@ -859,9 +862,14 @@ func (s *Service) FindRuns(ctx context.Context, filter influxdb.RunFilter) ([]*i
 }
 
 func (s *Service) findRuns(ctx context.Context, tx Tx, filter influxdb.RunFilter) ([]*influxdb.Run, int, error) {
-	if filter.Limit == 0 || filter.Limit > influxdb.TaskMaxPageSize {
-		filter.Limit = influxdb.TaskMaxPageSize
+	if filter.Limit == 0 {
+		filter.Limit = influxdb.TaskDefaultPageSize
 	}
+
+	if filter.Limit < 0 || filter.Limit > influxdb.TaskMaxPageSize {
+		return nil, 0, backend.ErrOutOfBoundsLimit
+	}
+
 	var runs []*influxdb.Run
 	// manual runs
 	manualRuns, err := s.manualRuns(ctx, tx, filter.Task)
@@ -1601,7 +1609,7 @@ func (s *Service) addRunLog(ctx context.Context, tx Tx, taskID, runID influxdb.I
 		return err
 	}
 	// update log
-	l := influxdb.Log{Time: when.Format(time.RFC3339Nano), Message: log}
+	l := influxdb.Log{RunID: runID, Time: when.Format(time.RFC3339Nano), Message: log}
 	run.Log = append(run.Log, l)
 	// save run
 	b, err := tx.Bucket(taskRunBucket)
