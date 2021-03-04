@@ -1,6 +1,10 @@
 This is the repository that contains InfluxDB Storage gRPC plugin for Jaeger.
 
-> IMPORTANT: This plugin is still under development. We are using it internally
+> KITABISA DISCLAIMER: This plugin is originally come from influxdata repository.
+> This code has been unmaintained by influxdata for a long time.
+> Please refer to the original repo for official features.
+
+> INFLUX DATA NOTE: This plugin is still under development. We are using it internally
 > already but the way we store data in InfluxDB can change based on what do we
 > learn about the data structure!
 
