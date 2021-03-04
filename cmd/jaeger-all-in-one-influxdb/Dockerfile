@@ -41,7 +41,7 @@ COPY ./cmd/jaeger-all-in-one-influxdb/supervisord.conf /etc/supervisor
 
 COPY ./cmd/jaeger-all-in-one-influxdb/run_jaeger.sh /usr/local/bin
 COPY ./cmd/jaeger-all-in-one-influxdb/sampling_strategies.json /etc/jaeger
-COPY ./cmd/jaeger-influxdb/jaeger-influxdb-linux /usr/local/bin
+COPY ./bin/jaeger-influxdb/jaeger-influxdb-linux /usr/local/bin
 
 COPY ./cmd/jaeger-all-in-one-influxdb/influxdb.conf /etc/influxdb
 

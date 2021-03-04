@@ -1,4 +1,4 @@
-module github.com/influxdata/jaeger-influxdb
+module github.com/kitabisa/jaeger-influxdb
 
 go 1.12
 

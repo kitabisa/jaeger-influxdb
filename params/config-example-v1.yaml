@@ -1,0 +1,6 @@
+influxdb:
+  host: http://influxdb:8086
+  database: jaeger_tracing
+  username: root
+  password: my-secret-pw
+  retention-policy: jaeger_tracing_30d # put retention policy name if you are implementing retention

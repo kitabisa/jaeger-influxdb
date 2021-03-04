@@ -12,9 +12,9 @@ import (
 	"github.com/influxdata/flux/lang"
 	"github.com/influxdata/influxdb"
 	"github.com/influxdata/influxdb/query"
-	"github.com/influxdata/jaeger-influxdb/common"
-	"github.com/influxdata/jaeger-influxdb/dbmodel"
-	"github.com/influxdata/jaeger-influxdb/influx2http"
+	"github.com/kitabisa/jaeger-influxdb/common"
+	"github.com/kitabisa/jaeger-influxdb/dbmodel"
+	"github.com/kitabisa/jaeger-influxdb/influx2http"
 	"github.com/jaegertracing/jaeger/model"
 	"github.com/jaegertracing/jaeger/storage/spanstore"
 )

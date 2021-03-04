@@ -9,7 +9,7 @@ import (
 
 	hclog "github.com/hashicorp/go-hclog"
 	"github.com/influxdata/flux"
-	"github.com/influxdata/jaeger-influxdb/common"
+	"github.com/kitabisa/jaeger-influxdb/common"
 	"github.com/jaegertracing/jaeger/model"
 	"github.com/jaegertracing/jaeger/pkg/multierror"
 	"github.com/pkg/errors"

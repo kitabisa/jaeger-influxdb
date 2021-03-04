@@ -1,2 +1,5 @@
-cmd/jaeger-influxdb/jaeger-influxdb-*
+bin/
 
+params/*
+!params/config-example-v1.yaml
+!params/config-example-v2.yaml

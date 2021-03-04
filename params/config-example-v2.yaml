@@ -1,0 +1,5 @@
+influxdb:
+  host: http://influxdb:8086
+  organization: my-org
+  bucket: my-bucket
+  token: my-token

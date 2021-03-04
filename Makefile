@@ -7,7 +7,7 @@ GOOS?=$(shell go env GOOS)
 
 .PHONY: build
 build:
-	CGO_ENABLED=0 go build -o ./cmd/jaeger-influxdb/jaeger-influxdb-$(GOOS) ./cmd/jaeger-influxdb/main.go
+	CGO_ENABLED=0 go build -o ./bin/jaeger-influxdb/jaeger-influxdb-$(GOOS) ./cmd/jaeger-influxdb/main.go
 
 .PHONY: build-linux
 build-linux:

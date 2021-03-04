@@ -8,8 +8,8 @@ import (
 
 	"github.com/hashicorp/go-hclog"
 	client "github.com/influxdata/influxdb1-client"
-	"github.com/influxdata/jaeger-influxdb/common"
-	"github.com/influxdata/jaeger-influxdb/dbmodel"
+	"github.com/kitabisa/jaeger-influxdb/common"
+	"github.com/kitabisa/jaeger-influxdb/dbmodel"
 	"github.com/jaegertracing/jaeger/model"
 	"github.com/jaegertracing/jaeger/storage/spanstore"
 )

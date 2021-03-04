@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-hclog"
-	"github.com/influxdata/jaeger-influxdb/config"
-	"github.com/influxdata/jaeger-influxdb/storev1"
-	"github.com/influxdata/jaeger-influxdb/storev2"
+	"github.com/kitabisa/jaeger-influxdb/config"
+	"github.com/kitabisa/jaeger-influxdb/storev1"
+	"github.com/kitabisa/jaeger-influxdb/storev2"
 	"github.com/jaegertracing/jaeger/plugin/storage/grpc"
 	"github.com/jaegertracing/jaeger/plugin/storage/grpc/shared"
 	"github.com/pkg/errors"
