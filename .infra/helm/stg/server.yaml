@@ -1,0 +1,97 @@
+secrets:
+  volumes:
+    - name: "{{ .Values.meta.name }}-config-{{ .Values.meta.env }}"
+      mounts:
+        - mountPath: "/opt/{{ .Values.meta.name }}/params/jaeger-influx-grpc.yaml"
+          subPath: firebase.json
+          readOnly: true
+
+server:
+  enabled: true
+
+  port: 16686
+
+  env:
+    - name: GRPC_STORAGE_PLUGIN_CONFIGURATION_FILE
+      value: "/opt/{{ .Values.meta.name }}/params/jaeger-influx-grpc.yaml"
+
+  extraPorts:
+    - name: deprecated-zipkin-thrift
+      containerPort: 5775
+      protocol: UDP
+    - name: jaeger-thrift-protocol
+      containerPort: 6831
+      protocol: UDP
+    - name: jaeger-thrift-binary-protocol
+      containerPort: 6832
+      protocol: UDP
+    - name: jaeger-thrift-direct-client
+      containerPort: 14268
+      protocol: TCP
+    - name: jaeger-agent-thrift
+      containerPort: 14267
+      protocol: TCP
+    - name: health-metrics
+      containerPort: 14269
+      protocol: TCP
+    - name: model-proto
+      containerPort: 14250
+      protocol: TCP
+    - name: zipkin-http-collector
+      containerPort: 9441
+      protocol: TCP
+
+  liveness:
+    enabled: true
+    override:
+      failureThreshold: 3
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 1
+      httpGet:
+        path: /
+        port: health-metrics
+
+  readiness:
+    enabled: true
+    override:
+      failureThreshold: 3
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 1
+      httpGet:
+        path: /
+        port: health-metrics
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+service:
+  enabled: true
+
+ingress:
+  enabled: true
+
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/limit-rps: "10"
+    nginx.ingress.kubernetes.io/whitelist-source-range: 103.122.35.224/29,103.86.156.224/29,178.128.96.94/32,35.240.229.116/32,34.101.252.165/32
+
+
+  tls:
+    - hosts:
+        - "jaeger.ktbs.xyz"
+
+  hosts:
+    - host: "jaeger.ktbs.xyz"
+      paths:
+        - "/"
+
+autoscaling:
+  minReplicas: 1
+  maxReplicas: 25

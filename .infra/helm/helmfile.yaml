@@ -1,0 +1,47 @@
+repositories:
+  - name: kitabisa
+    url: https://{{ requiredEnv "CHARTMUSEUM_HOST" }}
+    username: {{ requiredEnv "CHARTMUSEUM_USER" }}
+    password: {{ requiredEnv "CHARTMUSEUM_PASS" }}
+
+releases:
+  - name: {{ requiredEnv "APP_NAME" }}-config-{{ requiredEnv "ENV" }}
+    namespace: {{ requiredEnv "APP_NAME" }}
+    labels:
+      tier: config
+      type: main
+    chart: kitabisa/config
+    version: ~0.3.0
+    values:
+      - values.yaml.gotmpl
+    secrets:
+      - {{ requiredEnv "ENV" }}/secret.yaml
+
+  - name: {{ requiredEnv "APP_NAME" }}-server-{{ requiredEnv "ENV" }}
+    namespace: {{ requiredEnv "APP_NAME" }}
+    labels:
+      tier: app
+      type: main
+    chart: kitabisa/app
+    version: ~0.15.0-alpha
+    values:
+      - {{ requiredEnv "ENV" }}/server.yaml
+      - values.yaml.gotmpl
+    hooks:
+      - events: ["presync"]
+        showlogs: true
+        command: kubectl
+        args: ["label", "--overwrite", "namespaces", "{{ requiredEnv "APP_NAME" }}", "istio-injection=enabled"]
+    needs:
+      - {{ requiredEnv "APP_NAME" }}/{{ requiredEnv "APP_NAME" }}-config-{{ requiredEnv "ENV" }}
+
+  - name: {{ requiredEnv "APP_NAME" }}-user-{{ requiredEnv "ENV" }}
+    namespace: {{ requiredEnv "APP_NAME" }}
+    labels:
+      tier: user
+      type: main
+    chart: kitabisa/user
+    version: ~0.3.0
+    values:
+      - {{ requiredEnv "ENV" }}/user.yaml
+      - values.yaml.gotmpl
