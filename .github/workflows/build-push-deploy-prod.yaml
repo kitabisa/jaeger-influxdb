@@ -1,0 +1,127 @@
+name: Build-Push-Deploy Prod
+
+on:
+  release:
+    types: [released]
+
+env:
+  ENV: prod
+
+jobs:
+  build-push-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checking out repository
+        uses: actions/checkout@v2
+
+      - name: Configure Git for private modules
+        env:
+          USER: ${{ secrets.GH_USER }}
+          TOKEN: ${{ secrets.GH_TOKEN }}
+        run: git config --global url."https://${USER}:${TOKEN}@github.com".insteadOf "https://github.com"
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.x
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Setup Kubectl
+        uses: azure/setup-kubectl@v1
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID_PROD }}
+          service_account_key: ${{ secrets.GCP_SA_KEY_PROD }}
+          export_default_credentials: true
+
+      - name: Register gcloud as a Docker credential helper
+        env:
+          DOCKER_REGISTRY: ${{ secrets.GCR_HOST }}
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID_PROD }}
+        run: |-
+          gcloud auth configure-docker "$DOCKER_REGISTRY" --project "$GCP_PROJECT_ID" --quiet
+
+      - name: Get GKE credential
+        uses: google-github-actions/get-gke-credentials@main
+        with:
+          cluster_name: ${{ secrets.GKE_CLUSTER_PROD }}
+          location: ${{ secrets.GKE_REGION_PROD }}
+          project_id: ${{ secrets.GCP_PROJECT_ID_PROD }}
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v1
+
+      - name: Setup Helmfile
+        uses: kitabisa/actions/setup-helmfile@master
+
+      - name: Setup yq
+        uses: chrisdickinson/setup-yq@latest
+        with:
+          yq-version: 3.4.1
+
+      - name: Get Helm history
+        id: helm-history
+        run: |-
+          echo "::set-output name=length::$(make helm-history-length)"
+
+      - name: Get Helm revision
+        if: steps.helm-history.outputs.length >= 10
+        id: helm-revision
+        run: |-
+          echo "::set-output name=oldest::$(make helm-oldest-revision)"
+
+      - name: Get Helm values
+        if: steps.helm-revision.outputs.oldest != 0
+        id: helm-values
+        env:
+          REVISION: ${{ steps.helm-revision.outputs.oldest }}
+        run: |-
+          echo "::set-output name=image-tag::$(make helm-image-tag)"
+
+      - name: Cache Go modules
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ hashFiles('**/Dockerfile') }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Build application
+        run: |-
+          make build-linux
+
+      - name: Build, tag, and push Docker image
+        env:
+          DOCKER_REPOSITORY: ${{ secrets.GCR_HOST }}/${{ secrets.GCP_PROJECT_ID_PROD }}
+        run: |-
+          make package
+
+      - name: Deploy via Helmfile
+        env:
+          CHARTMUSEUM_HOST: ${{ secrets.CHARTMUSEUM_HOST }}
+          CHARTMUSEUM_USER: ${{ secrets.CHARTMUSEUM_USER }}
+          CHARTMUSEUM_PASS: ${{ secrets.CHARTMUSEUM_PASS }}
+          DOCKER_REPOSITORY: ${{ secrets.GCR_HOST }}/${{ secrets.GCP_PROJECT_ID_PROD }}
+        run: |-
+          make deploy
+
+      - name: Remove unused Docker images
+        if: steps.helm-values.outputs.image-tag != 0
+        env:
+          DOCKER_REPOSITORY: ${{ secrets.GCR_HOST }}/${{ secrets.GCP_PROJECT_ID_PROD }}
+          IMAGE_TAG: ${{ steps.helm-values.outputs.image-tag }}
+        run: |-
+          make prune || true

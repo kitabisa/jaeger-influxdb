@@ -1,0 +1,21 @@
+name: Rebase
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  rebase:
+    runs-on: ubuntu-latest
+    if: github.event.issue.pull_request && contains(github.event.comment.body, '/rebase')
+
+    steps:
+      - name: Checking out the latest code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Rebase
+        uses: cirrus-actions/rebase@1.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,78 @@
+name: Rollback Prod
+
+on:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "Helm release name"
+        required: true
+      revision:
+        description: "Helm revision (version) number"
+        required: false
+
+env:
+  ENV: prod
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checking out repository
+        uses: actions/checkout@v2
+
+      - name: Setup Kubectl
+        uses: azure/setup-kubectl@v1
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID_PROD }}
+          service_account_key: ${{ secrets.GCP_SA_KEY_PROD }}
+          export_default_credentials: true
+
+      - name: Get GKE credential
+        uses: google-github-actions/get-gke-credentials@main
+        with:
+          cluster_name: ${{ secrets.GKE_CLUSTER_PROD }}
+          location: ${{ secrets.GKE_REGION_PROD }}
+          project_id: ${{ secrets.GCP_PROJECT_ID_PROD }}
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v1
+
+      - name: Setup yq
+        uses: chrisdickinson/setup-yq@latest
+        with:
+          yq-version: 3.4.1
+
+      - name: Get Helm history
+        id: helm-history
+        run: |-
+          echo "::set-output name=length::$(make helm-history-length)"
+
+      - name: Get Helm revision
+        if: steps.helm-history.outputs.length >= 10
+        id: helm-revision
+        run: |-
+          echo "::set-output name=oldest::$(make helm-oldest-revision)"
+
+      - name: Get Helm values
+        if: steps.helm-revision.outputs.oldest != 0
+        id: helm-values
+        env:
+          REVISION: ${{ steps.helm-revision.outputs.oldest }}
+        run: |-
+          echo "::set-output name=image-tag::$(make helm-image-tag)"
+
+      - name: Rollback via Helm
+        run: |-
+          make rollback RELEASE=${{ github.event.inputs.release }} REVISION=${{ github.event.inputs.revision }}
+
+      - name: Remove unused Docker images
+        if: steps.helm-values.outputs.image-tag != 0 && steps.helm-revision.outputs.oldest != github.event.inputs.revision && contains(github.event.inputs.release, 'jaeger-influxdb-server')
+        env:
+          DOCKER_REPOSITORY: ${{ secrets.GCR_HOST }}/${{ secrets.GCP_PROJECT_ID_PROD }}
+          IMAGE_TAG: ${{ steps.helm-values.outputs.image-tag }}
+        run: |-
+          make prune || true

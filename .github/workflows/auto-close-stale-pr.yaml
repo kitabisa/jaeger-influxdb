@@ -1,0 +1,17 @@
+name: Auto-Close Stale PR
+on:
+  schedule:
+    - cron: 0 0 * * *
+
+jobs:
+  close-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          stale-pr-message: "This PR has been automatically marked as no-pr-activity. Closing it..."
+          stale-pr-label: "no-pr-activity"
+          exempt-pr-label: "awaiting-approval"
+          days-before-stale: 13
+          days-before-close: 0

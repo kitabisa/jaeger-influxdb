@@ -87,13 +87,13 @@ ingress:
 
   tls:
     - hosts:
-        - "jaeger.ktbs.xyz"
+        - "jaeger.ktbs.io"
 
   hosts:
-    - host: "jaeger.ktbs.xyz"
+    - host: "jaeger.ktbs.io"
       paths:
         - "/"
 
 autoscaling:
-  minReplicas: 1
-  maxReplicas: 25
+  minReplicas: 3
+  maxReplicas: 50
