@@ -1,4 +1,5 @@
 bin/
+*.dec
 
 params/*
 !params/config-example-v1.yaml
