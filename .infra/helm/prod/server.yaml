@@ -3,7 +3,7 @@ secrets:
     - name: "{{ .Values.meta.name }}-config-{{ .Values.meta.env }}"
       mounts:
         - mountPath: "/opt/{{ .Values.meta.name }}/params/jaeger-influx-grpc.yaml"
-          subPath: firebase.json
+          subPath: jaeger-influx-grpc.yaml
           readOnly: true
 
 server:
